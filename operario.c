@@ -44,6 +44,10 @@ void viraGraus(int graus, int direcao, int forcaMotor);
 void checaConec();
 void readDataMsg();
 void walk(int distance, int powerMotor);
+//CALIBRACAO
+void insertSort();
+void checkIntervals(int counter);
+int routineCalibration();
 ////////////////////
 //Variaveis de controle
 bool caminhar = false;
@@ -57,6 +61,23 @@ task main(){
 	//StartTask(controle);
 	StartTask(tBTmensage);
 	int cont;
+	//////////////ROTINA DE CALIBRACAO////////////////////////////
+  	//nxtDisplayCenteredTextLine(3,"%d", SensorValue[sonar]);
+	//nxtDisplayCenteredTextLine(2,"%d", colorRight);
+	//nxtDisplayCenteredTextLine(3,"%d", colorLeft);
+	/*nxtDisplayCenteredTextLine(2,"%d", white[0]);
+	nxtDisplayCenteredTextLine(3,"%d", white[1]);
+	waitInMilliseconds(2000);
+	eraseDisplay();
+	nxtDisplayCenteredTextLine(2,"%d", red[0]);
+	nxtDisplayCenteredTextLine(3,"%d", red[1]);
+	waitInMilliseconds(2000);
+	eraseDisplay();
+	nxtDisplayCenteredTextLine(2,"%d", black[0]);
+	nxtDisplayCenteredTextLine(3,"%d", black[1]);
+	waitInMilliseconds(2000);
+	eraseDisplay();*/
+	///////////////////////////////////////////////////////
 	for(;;){
 		if(caminhar){
 			switch(estado){
@@ -171,6 +192,7 @@ task controle(){
 			  estado = PARADO;
 	}
 }
+/////////////////////////////////////////////////////////////////////////////////////
 
 int obterCor(int sensor){
 	if(sensor < PRATA)
@@ -278,3 +300,86 @@ void readDataMsg(){
    return;
 }
 //////////////////////////////////////////////////////////////////////////////////////
+// MÉTODOS DE CALIBRAÇÃO //////////////////////////////////////////////////////////
+int tickRobot = 18;
+int circunferenciaRobot = 628;               // 628 mm
+int white[2] = {54,78};                      //Array that store the intervals correspondent to white.
+int red[2]   = {70,80};                      //Array that store the intervals correspondent to red.
+int black[2] = {24,51};                      //Array that store the intervals correspondent to black.
+int intervals[10] = {0,0,0,0,0,0,0,0,0,0}; //Array used for calculate the intervals of colors.
+
+void insertSort() {
+  for(int i = 0; i < 10; i++){
+    int j = i;
+    while(j>0 && intervals[j] < intervals[j-1]){
+      int temp  = intervals[j];
+      intervals[j] = intervals[j-1];
+      intervals[j-1] = temp;
+      j--;
+    }
+  }
+}
+
+void checkIntervals(int counter){
+   int amount = 0;                     //Amount of reading
+   int i = 0;                          //Counter of position to intervals
+   while(amount < 5){
+      if(nNxtButtonPressed == 1){
+        nxtDisplayCenteredTextLine(2,"Sensor Right");
+        nxtDisplayCenteredTextLine(3,"%d", SensorValue[LightSensorRight]);
+      }else if(nNxtButtonPressed == 2){
+        nxtDisplayCenteredTextLine(2,"Sensor Left");
+        nxtDisplayCenteredTextLine(3,"%d", SensorValue[LightSensorLeft]);
+      }else if(nNxtButtonPressed == 3){//button orange pressed
+          intervals[i]  = SensorValue[LightSensorRight];
+          intervals[i+1]= SensorValue[LightSensorLeft];
+          waitInMilliseconds(1000);
+          nxtDisplayCenteredTextLine(2,"Reading done");
+          waitInMilliseconds(1000);
+          nxtDisplayClearTextLine(3);
+          i+=2;                         //Now, two positions are with values, so, increase 2.
+          amount += 1;                  //After that finish a reading, let's to next.
+      }
+   }
+   //Perform Ordering values of intervals
+   insertSort();
+   switch(counter){
+        /*Now, with the intervals, we pass the values to the matching colors.*/
+        case 0:                          //color White
+            nxtDisplayCenteredTextLine(1,"Color White");
+            white[0] = intervals[0] - 8; //take the less value
+            white[1] = intervals[9] + 8; //take the maijor value
+            writeDebugStreamLine("white: %d - %d", white[0], white[1]);
+            break;
+
+        case 1:                          //color Black
+            nxtDisplayCenteredTextLine(2,"Color Black");
+            black[0] = intervals[0] - 8; //take the less value
+            black[1] = intervals[9] + 8; //take the maijor value
+            writeDebugStreamLine("black: %d - %d", black[0], black[1]);
+            break;
+
+        case 2:                        //color Red
+            nxtDisplayCenteredTextLine(3,"Color Red");
+            red[0] = intervals[0] - 8; //take the less value
+            red[1] = intervals[9] + 8; //take the maijor value
+            writeDebugStreamLine("red: %d - %d", red[0], red[1]);
+            break;
+        default:
+            break;
+   }
+   waitInMilliseconds(500);
+   eraseDisplay();
+   /*set intervals with 0*/
+   for(int j = 0; j < 10; j++){
+     intervals[j] = 0;
+   }
+}
+
+int routineCalibration(){
+    checkIntervals(0); //white
+    checkIntervals(1); //black
+    checkIntervals(2); //red
+    return 1;
+}
+/////////////////////////////////////////////////////////////////////////////////////////////
