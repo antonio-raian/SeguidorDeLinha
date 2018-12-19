@@ -16,4 +16,20 @@ class Obstaculo{
   public String println(){
     return p1+","+p2+","+p3+","+p4;
   }
+  
+  public PVector getP1(){
+    return p1;
+  }
+  
+  public PVector getP2(){
+    return p2;
+  }
+  
+  public PVector getP3(){
+    return p3;
+  }
+  
+  public PVector getP4(){
+    return p4;
+  }
 }

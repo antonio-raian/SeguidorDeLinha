@@ -35,44 +35,32 @@ void setup() {
 }
 
 void draw() {
-  if (mouseX >= 850 && mouseX <=970 && mouseY>=20 && mouseY<=60 ) {//mouse no botão Adicionar Obstáculo
-    cursor(HAND);
-    if(mousePressed == true && mouseButton == LEFT){
-      estado=1;
-      escrever=1;
-      cor = color(50,153,204);
-    }
-  } else if(mouseX >= 850 && mouseX <=970 && mouseY>=70 && mouseY<=110){//mouse no botão Confirmar Ambiente
-    cursor(HAND);
-    if(mousePressed == true && mouseButton == LEFT){
-      estado=2;
-    }
-  } else {
-    cursor(ARROW);
-  }
+  /* Código responsável pela checagem do movimento e ação do curso do mouse*/
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
   switch(estado){
     case 0:
-      if (mouseX >= 850 && mouseX <=970 && mouseY>=20 && mouseY<=60 ) {//mouse no botão Adicionar Obstáculo
-        cursor(HAND);
-        if(mousePressed == true && mouseButton == LEFT){
-          estado=1;
-          cor = color(50,153,204);
-        }
-      } else if(mouseX >= 850 && mouseX <=970 && mouseY>=70 && mouseY<=110){//mouse no botão Confirmar Ambiente
-        cursor(HAND);
-        if(mousePressed == true && mouseButton == LEFT){
-          estado=2;
-        }
-      } else {
+        if (mouseX >= 850 && mouseX <=970 && mouseY>=20 && mouseY<=60 ) {//mouse no botão Adicionar Obstáculo
+          cursor(HAND);
+          if(mousePressed == true && mouseButton == LEFT){
+            estado=1;
+            escrever = 1;
+            cor = color(50,153,204);
+          }
+        } else if(mouseX >= 850 && mouseX <=970 && mouseY>=70 && mouseY<=110){//mouse no botão Confirmar Ambiente
+          cursor(HAND);
+          if(mousePressed == true && mouseButton == LEFT){
+            estado=2;
+          }
+        } else {
         cursor(ARROW);
-      }
-    break;
+        }
+        break;
     case 1:
-      desenhaRet(850, 130, 50, 30, 255);//X
-      desenhaRet(920, 130, 50, 30, 255);//Y
-      desenhaRet(850, 180, 50, 30, 255);//largura
-      desenhaRet(920, 180, 50, 30, 255);//altura
-      desenhaRet(900, 230, 70, 30, 0);
+        desenhaRet(850, 130, 50, 30, 255);//X
+        desenhaRet(920, 130, 50, 30, 255);//Y
+        desenhaRet(850, 180, 50, 30, 255);//largura
+        desenhaRet(920, 180, 50, 30, 255);//altura
+        desenhaRet(900, 230, 70, 30, 0);
       
       textSize(14);
       fill(0);
@@ -89,17 +77,14 @@ void draw() {
           estado=0;
           noStroke();
           desenhaRet(850, 130, 125, 135, 168);
-          desenhaRet(20+(int(obx)*3), 20+(int(oby)*3), int(obLar)*3, int(obAlt)*3, cor);
-          
-          stroke(0);
-          Obstaculo ob = new Obstaculo();
-          ob.setCoordenadas(int(obx), int(oby), int(obx)+int(obLar), int(oby), int(obx)+int(obLar), int(oby)+int(obAlt), int(obx), int(oby)+int(obAlt));
-          
-          obstaculos.add(ob);
-          
-          println(ob.println());
-          println(obstaculos);          
-          
+          if( checkValueCoordenate() == 1) {
+            desenhaRet(20+(int(obx)*3), 20+(int(oby)*3), int(obLar)*3, int(obAlt)*3, cor);
+            stroke(0);
+            Obstaculo ob = new Obstaculo();
+            ob.setCoordenadas(int(obx), int(oby), int(obx)+int(obLar), int(oby), int(obx)+int(obLar), int(oby)+int(obAlt), int(obx), int(oby)+int(obAlt)); 
+            obstaculos.add(ob);
+            println(ob.println());          
+          }
           clean();
         }
       }
@@ -131,7 +116,6 @@ void desenhaRet(int x, int y, int largura, int altura, color c){
   rect(x, y, largura, altura);
 }
 
-
 void keyTyped() {
   //println("typed " + int(key) + " " + keyCode);
   if(int(key)>=48 && int(key)<=57){
@@ -139,19 +123,18 @@ void keyTyped() {
       case 1:
         obx = obx + key;
         println(int(obx));
-      break;
+        break;
       case 2:
         oby = oby + key;
-      break;
+        break;
       case 3:
         obLar = obLar + key;
-      break;
+        break;
       case 4:
         obAlt = obAlt + key;
-      break;
+        break;
       default:
-        
-      break;
+        break;
     }
   }
 }
@@ -173,4 +156,13 @@ void clean(){
   oby = "Y";
   obLar = "largura";
   obAlt = "altura";
+}
+
+int checkValueCoordenate(){
+  if(int(obx) <= 270 && int(oby) <= 220){
+    if( (int(obx) + int(obLar)) <= 270 && (int(oby) + int(obAlt)) <=220){
+      return 1;
+    }
+  }  
+  return 0;
 }
