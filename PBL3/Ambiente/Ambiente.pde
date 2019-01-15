@@ -4,8 +4,8 @@ import pt.citar.diablu.processing.nxt.*;
 import processing.serial.*;
 
 color cor;
-ArrayList obstaculos;
-int estado; //0 = inicial, 1 = setando obstáculos, 2 = pronto pra gerar rota
+ArrayList <Obstaculo> obstaculos;
+int estado; //0 = inicial, 1 = setando obstáculos, 2 = pronto pra gerar rota, 3 = apagar último obstáculo
 String obx, oby, obLar, obAlt;
 int escrever; //0 = faz nada 1 = seta x, 2 = seta y, 3 = seta Largura, 4 = seta Altura
 
@@ -17,21 +17,19 @@ void setup() {
   background(168,168,168);//fundo Cinza Brilhante
   size(1000, 700);
   
-  desenhaRet(20,20,810,660, color(255));//Área de trabalho, cada cm são 3 pixeis
+  desenhaRet(20,20,810,660, color(255));          //Área de trabalho, cada cm são 3 pixeis
   desenhaRet(850, 20,120, 40, color(112,219,219));//Botão adicionar obstáculo
-  desenhaRet(850,70,120,40, color(112,219,147));//Botão Confirma
-  desenhaRet(850,640,120,40, color(255));//Coordenada mouse
-    
+  desenhaRet(850,70,120,40, color(112,219,147));  //Botão Confirma
+  desenhaRet(850,640,120,40, color(255));         //Coordenada mouse
+  desenhaRet(850,590,120,40, color(112,219,219)); //Botão de apagar obstáculos  
   fill(0);  
-  textSize(14);
+  textSize(13);
   text("Adicionar", 878, 39);
   text("Obstáculo", 875, 54);
-  
-  text("Confirma", 875, 89);
-  text("Ambiente", 875, 104);
-  
+  text("Confirmar", 875, 89);
+  text("Ambiente", 876, 104);
   text("Coordenadas:", 865, 659); 
-  
+  text("Apagar obstáculos", 852, 615); 
 }
 
 void draw() {
@@ -39,9 +37,11 @@ void draw() {
   /////////////////////////////////////////////////////////////////////////////////////////////////////////
   switch(estado){
     case 0:
-        if (mouseX >= 850 && mouseX <=970 && mouseY>=20 && mouseY<=60 ) {//mouse no botão Adicionar Obstáculo
+        if (mouseX >= 850 && mouseX <=970 && mouseY>=20 && mouseY<=60) {//mouse no botão Adicionar Obstáculo
           cursor(HAND);
           if(mousePressed == true && mouseButton == LEFT){
+            noStroke();
+            desenhaRet(850, 130, 125, 135, 168); //Cobre a mensagem de erro dos obstáculos fora dos espaços.
             estado=1;
             escrever = 1;
             cor = color(50,153,204);
@@ -51,7 +51,12 @@ void draw() {
           if(mousePressed == true && mouseButton == LEFT){
             estado=2;
           }
-        } else {
+        }else if(mouseX >= 850 && mouseX <= 970 && mouseY>=590 && mouseY<=630){//mouse no botão Apagar obstáculos
+          cursor(HAND);
+          if(mousePressed == true && mouseButton == LEFT){
+            estado=3;
+          }
+        }else {
         cursor(ARROW);
         }
         break;
@@ -62,7 +67,7 @@ void draw() {
         desenhaRet(920, 180, 50, 30, 255);//altura
         desenhaRet(900, 230, 70, 30, 0);
       
-      textSize(14);
+      textSize(13);
       fill(0);
       text(obx+"", 853, 150);
       text(oby+"", 923, 150);
@@ -76,21 +81,45 @@ void draw() {
         if(mousePressed == true && mouseButton == LEFT){
           estado=0;
           noStroke();
-          desenhaRet(850, 130, 125, 135, 168);
-          if( checkValueCoordenate() == 1) {
-            desenhaRet(20+(int(obx)*3), 20+(int(oby)*3), int(obLar)*3, int(obAlt)*3, cor);
+          desenhaRet(850, 130, 125, 135, 168); //Cobre novamente os espaços de coordenadas após inserí-los.
+          if( checkValueCoordenate() == 1) {   //Realiza checagem para verificar se o obstáculo está dentro do espaço desejado.
+            desenhaRet(20+(int(obx)*3), 20+(int(oby)*3), int(obLar)*3, int(obAlt)*3, cor);//Desenha o obstáculo desejado.
             stroke(0);
             Obstaculo ob = new Obstaculo();
             ob.setCoordenadas(int(obx), int(oby), int(obx)+int(obLar), int(oby), int(obx)+int(obLar), int(oby)+int(obAlt), int(obx), int(oby)+int(obAlt)); 
             obstaculos.add(ob);
             println(ob.println());          
+          } else {
+            fill(0);  
+            textSize(15);
+            text("Obstáculo fora", 858, 150);
+            text("do espaço!!", 875, 170);
           }
           clean();
         }
       }
-    break;
-    case 2:
-    break;
+      break;
+    case 2: //gerar ambiente de rotas
+      divideScreen();
+      estado = 0;
+      break;
+      
+    case 3: //apagar último obstáculo
+      delay(100); //Atrasa a execução para dar o tempo do click do mouse
+      if(obstaculos.size() == 0){
+        estado = 0;
+      }else{
+        Obstaculo aux = obstaculos.remove((obstaculos.size()-1));
+        noStroke();
+        desenhaRet(20+(aux.getX()*3), 20+(aux.getY()*3), aux.getWidth()*3, aux.getHeight()*3, color(255));//Apaga o obstáculo
+        estado = 0;
+      }
+      /*Laço que redesenha os obstáculos para evitar danos em algum, caso tenha ocorrido sobreposição.*/
+      for(int i = 0; i < obstaculos.size(); i++){
+        Obstaculo aux = obstaculos.get(i);
+        desenhaRet(20+(aux.getX()*3), 20+(aux.getY()*3), aux.getWidth()*3, aux.getHeight()*3, cor);
+      }
+      break;
   }
   
   if (mouseX >= 20 && mouseX <=830 && mouseY>=20 && mouseY<=680 ) {
@@ -100,6 +129,30 @@ void draw() {
     textSize(14); 
     text("Coordenadas:", 865, 659);
     text(posicaoCM(mouseX)+":"+posicaoCM(mouseY)+" cm", 875, 674);
+  }
+}
+
+void divideScreen(){
+  int x1,x2,y1,y2;
+  /*----------Divisão vertical------------*/
+  x1 = (20 + (27*3)); 
+  x2 = (20 + (27*3)); 
+  y1 = 20; 
+  y2 = 20 + 660;
+  for(int i = 27; i < 270; i+=27){
+      line(x1, y1, x2, y2);
+      x1+=27*3;
+      x2+=27*3;
+  }
+  /*----------Divisão horizontal-----------*/  
+  x1 = 20; 
+  x2 = 20+810; 
+  y1 = (20 + (22*3)); 
+  y2 = (20 + (22*3));
+  for(int i = 22; i < 220; i+=22){
+    line(x1, y1, x2, y2);
+    y1+=22*3;
+    y2+=22*3;
   }
 }
 
