@@ -1,6 +1,6 @@
 class Obstaculo{
   PVector p1, p2, p3, p4;
-  int x,y;
+  int x,y,x3,y3;
   public PVector[] getCoordenadas(){
     PVector [] cord = {p1, p2, p3, p4}; 
     return cord;
@@ -13,6 +13,8 @@ class Obstaculo{
     this.p4 = new PVector(x4, y4);
     this.x  = x1;
     this.y  = y1;
+    this.x3  = x3;
+    this.y3  = y3;
   }
   
   public String println(){
@@ -41,6 +43,14 @@ class Obstaculo{
   
   public int getY(){
     return y;
+  }
+  
+  public int getX3(){
+    return x3;
+  }
+  
+  public int getY3(){
+    return y3;
   }
   public int getWidth(){
     return int(p1.dist(p2)); 

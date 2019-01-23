@@ -5,15 +5,27 @@ import processing.serial.*;
 
 color cor;
 ArrayList <Obstaculo> obstaculos;
-int estado; //0 = inicial, 1 = setando obstáculos, 2 = pronto pra gerar rota, 3 = apagar último obstáculo
+int estado; //0 = inicial, 1 = setando obstáculos, 2 = pronto pra gerar rota, 3 = apagar último obstáculo, 4 = definir ponto final e inicial e gerar tragetória 
 String obx, oby, obLar, obAlt;
 int escrever; //0 = faz nada 1 = seta x, 2 = seta y, 3 = seta Largura, 4 = seta Altura
+int frames;
+int sizeLinha;
+int sizeColuna;
+int positionMouseX;
+int positionMouseY;
+int pointIF; //Ponto inicial = 0, ponto final = 1;
+
+Frame [][] frameScreen = new Frame[10][10];
 
 void setup() {
+  pointIF = 0;
+  sizeLinha   = 27;
+  sizeColuna  = 22;
   obstaculos = new ArrayList();
   clean();
   estado = 0; //Estado inicial
   escrever = 0;
+  frames = 10;
   background(168,168,168);//fundo Cinza Brilhante
   size(1000, 700);
   
@@ -30,6 +42,8 @@ void setup() {
   text("Ambiente", 876, 104);
   text("Coordenadas:", 865, 659); 
   text("Apagar obstáculos", 852, 615); 
+  divideScreen(); //Divide a tela em frames
+  storeFrames();  //Armazena os frames das telas
 }
 
 void draw() {
@@ -100,8 +114,26 @@ void draw() {
       }
       break;
     case 2: //gerar ambiente de rotas
-      divideScreen();
-      estado = 0;
+      /*Pintar guadros ocupados por obstáculos*/
+      int x1,y1,x3,y3;
+      int frX1,frY1,frX3,frY3;
+      for (int i = obstaculos.size() - 1; i >= 0; i--) {
+        Obstaculo part = obstaculos.get(i);
+        x1 = part.getX();
+        y1 = part.getY();
+        x3 = part.getX3();
+        y3 = part.getY3();
+        /*Agora pinta os frames específcos ocupados pelo obstáculo*/
+        frX1 = (27*(searchFrame(x1,1)-1));
+        frX3 = (27*searchFrame(x3,1));
+        frY1 = (22*(searchFrame(y1,0)-1));
+        frY3 = (22*searchFrame(y3,0));
+        noStroke();
+        desenhaRet(20+(frX1*3),20+(frY1*3),(frX3-frX1)*3,(frY3-frY1)*3, color(0));
+        divideScreen();//divide novamente a tela
+      }
+      /*--------------------------------------*/
+      estado = 4;
       break;
       
     case 3: //apagar último obstáculo
@@ -114,11 +146,41 @@ void draw() {
         desenhaRet(20+(aux.getX()*3), 20+(aux.getY()*3), aux.getWidth()*3, aux.getHeight()*3, color(255));//Apaga o obstáculo
         estado = 0;
       }
+      divideScreen();//divide novamente a tela
       /*Laço que redesenha os obstáculos para evitar danos em algum, caso tenha ocorrido sobreposição.*/
       for(int i = 0; i < obstaculos.size(); i++){
         Obstaculo aux = obstaculos.get(i);
+        noStroke();
         desenhaRet(20+(aux.getX()*3), 20+(aux.getY()*3), aux.getWidth()*3, aux.getHeight()*3, cor);
       }
+      break;
+      
+    case 4:
+      /*--------------Definir ponto inicial e final da tragetória-------------------*/
+      delay(100);
+      if(pointIF == 2){
+        estado = 0;
+        break;
+      }
+      if (mouseX >= 20 && mouseX <=830 && mouseY>=20 && mouseY<=680 ) {
+          cursor(HAND);
+          if(mousePressed == true && mouseButton == LEFT){
+             positionMouseX = posicaoCM(mouseX);
+             positionMouseY = posicaoCM(mouseY);
+             int mouseX1Frame = searchFrame(positionMouseX,1)-1;
+             int mouseY1Frame = searchFrame(positionMouseY,0)-1;
+             Frame aux = frameScreen[mouseX1Frame][mouseY1Frame];
+             if(pointIF == 0){       //Initial point
+               ellipseMode(CENTER);  // Set ellipseMode to CENTER
+               fill(100);            // Set fill to gray
+             }else{                  //Final point
+               ellipseMode(CENTER);  // Set ellipseMode to CENTER
+               fill(204, 102, 0);    // Set fill to orange 
+             }
+             ellipse(20+(aux.getCenterX()*3), 20+(aux.getCenterY()*3), 10, 10);
+             pointIF++;
+          }
+      }  
       break;
   }
   
@@ -128,8 +190,36 @@ void draw() {
     fill(0);  
     textSize(14); 
     text("Coordenadas:", 865, 659);
-    text(posicaoCM(mouseX)+":"+posicaoCM(mouseY)+" cm", 875, 674);
+    positionMouseX = posicaoCM(mouseX);
+    positionMouseY = posicaoCM(mouseY);
+    text(positionMouseX+":"+positionMouseY+" cm", 875, 674);
   }
+}
+
+
+void storeFrames(){
+  int x;
+  int y;
+  int coordenateX = 0;
+  int coordenateY = 0;
+  int largura = 27;
+  int altura  = 0;
+   for(x = 0; x < frames; x++){
+     for(y = 0; y < frames; y++ ){
+       frameScreen[x][y] = new Frame(coordenateX,coordenateY,largura,altura);
+        /*print(coordenateX + " ");
+        println(coordenateY);
+        println(largura);
+        println(altura);
+        println("------------------------");*/
+        coordenateY+=sizeColuna;
+        altura += sizeColuna;
+     }
+     altura = 0;
+     largura += sizeLinha;
+     coordenateX+=sizeLinha;
+     coordenateY = 0;
+   }
 }
 
 void divideScreen(){
@@ -140,6 +230,7 @@ void divideScreen(){
   y1 = 20; 
   y2 = 20 + 660;
   for(int i = 27; i < 270; i+=27){
+      stroke(255, 140, 100);
       line(x1, y1, x2, y2);
       x1+=27*3;
       x2+=27*3;
@@ -150,11 +241,41 @@ void divideScreen(){
   y1 = (20 + (22*3)); 
   y2 = (20 + (22*3));
   for(int i = 22; i < 220; i+=22){
+    stroke(255, 140, 100);
     line(x1, y1, x2, y2);
     y1+=22*3;
     y2+=22*3;
   }
 }
+
+int searchFrame( int value, int coordenate ){
+  int point1 = 0;
+  int point2;
+  int result = 0;
+  if(coordenate == 1){ //search frame x
+    point2 = 27;
+  }else{
+    point2 = 22; //search frame y
+  }
+  
+  for(int i = 1; i <= frames; i++){
+     if( (value >= point1) && (value <= point2) ){
+       result = i;
+       break;
+     }else{
+         if(coordenate == 1){
+           point1+= 27;
+           point2+= 27;
+         }else{
+           point1+= 22;
+           point2+= 22;
+         }
+     }
+  }  
+  return result;
+}
+
+
 
 int posicaoCM(int x){
   if(x!=0){
