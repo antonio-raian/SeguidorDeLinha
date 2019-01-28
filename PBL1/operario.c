@@ -301,8 +301,7 @@ void readDataMsg(){
 }
 //////////////////////////////////////////////////////////////////////////////////////
 // MÉTODOS DE CALIBRAÇÃO //////////////////////////////////////////////////////////
-int tickRobot = 18;
-int circunferenciaRobot = 628;               // 628 mm
+//int circunferenciaRobot = 628;               // 628 mm
 int white[2] = {54,78};                      //Array that store the intervals correspondent to white.
 int red[2]   = {70,80};                      //Array that store the intervals correspondent to red.
 int black[2] = {24,51};                      //Array that store the intervals correspondent to black.
