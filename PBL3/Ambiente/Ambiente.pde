@@ -5,7 +5,7 @@ import processing.serial.*;
 
 color cor;
 ArrayList <Obstaculo> obstaculos;
-int estado; //0 = inicial, 1 = setando obstáculos, 2 = pronto pra gerar rota, 3 = apagar último obstáculo, 4 = definir ponto final e inicial e gerar tragetória 
+int estado; //0 = inicial, 1 = setando obstáculos, 2 = pronto pra gerar ambiente, 3 = apagar último obstáculo, 4 = definir ponto final e inicial e gerar tragetória, 5 = gerar tragetória 
 String obx, oby, obLar, obAlt;
 int escrever; //0 = faz nada 1 = seta x, 2 = seta y, 3 = seta Largura, 4 = seta Altura
 int frames;
@@ -14,6 +14,12 @@ int sizeColuna;
 int positionMouseX;
 int positionMouseY;
 int pointIF; //Ponto inicial = 0, ponto final = 1;
+
+/*----Coordenadas dos frames de partida e destino da tragetória*/
+int coordXInicial;
+int coordYInicial;
+int coordXFinal;
+int coordYFinal;
 
 Frame [][] frameScreen = new Frame[10][10];
 
@@ -157,9 +163,10 @@ void draw() {
       
     case 4:
       /*--------------Definir ponto inicial e final da tragetória-------------------*/
-      delay(100);
+      delay(200);
       if(pointIF == 2){
-        estado = 0;
+        estado = 5;
+        pointIF = 0;
         break;
       }
       if (mouseX >= 20 && mouseX <=830 && mouseY>=20 && mouseY<=680 ) {
@@ -173,14 +180,40 @@ void draw() {
              if(pointIF == 0){       //Initial point
                ellipseMode(CENTER);  // Set ellipseMode to CENTER
                fill(100);            // Set fill to gray
+               coordXInicial = mouseX1Frame;
+               coordYInicial = mouseY1Frame;
              }else{                  //Final point
                ellipseMode(CENTER);  // Set ellipseMode to CENTER
                fill(204, 102, 0);    // Set fill to orange 
+               coordXFinal = mouseX1Frame;
+               coordYFinal = mouseY1Frame;
              }
              ellipse(20+(aux.getCenterX()*3), 20+(aux.getCenterY()*3), 10, 10);
              pointIF++;
           }
       }  
+      break;
+    
+    case 5:
+          /*--------Gerar tragetória----------*/
+          delay(150);
+          stroke(0);
+          desenhaRet(850,120,120,45, color(112,219,147));  //Botão para gerar tragetória
+          fill(0);
+          text("Gerar tragetória", 858, 140);
+          text("e enviar", 880, 157);
+          
+          if(mouseX >= 850 && mouseX <=970 && mouseY>=120 && mouseY<=165){//mouse no botão Confirmar Ambiente
+             cursor(HAND);
+             if(mousePressed == true && mouseButton == LEFT){
+                
+             }
+          }
+          
+          
+          
+          
+          
       break;
   }
   
