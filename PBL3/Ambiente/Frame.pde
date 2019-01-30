@@ -12,6 +12,7 @@ class Frame {
       this.centerY = (altura + int(22/2));
       this.X1      = X1;
       this.Y1      = Y1;
+      this.weight = 300;
   }
   
   public int getX1(){
@@ -36,6 +37,5 @@ class Frame {
   
   public int setWeight(int value){
       return this.weight = value;
-  }
-  
+  }  
 }

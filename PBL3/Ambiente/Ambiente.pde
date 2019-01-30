@@ -15,15 +15,21 @@ int positionMouseX;
 int positionMouseY;
 int pointIF; //Ponto inicial = 0, ponto final = 1;
 
-/*----Coordenadas dos frames de partida e destino da tragetória*/
+/*----Coordenadas(index) dos frames de partida e destino da tragetória*/
 int coordXInicial;
 int coordYInicial;
 int coordXFinal;
 int coordYFinal;
 
+/*------Variáveis do método manhattan--------*/
+IntList index;
+
+
+/*------------------------------------*/
 Frame [][] frameScreen = new Frame[10][10];
 
 void setup() {
+  index = new IntList();
   pointIF = 0;
   sizeLinha   = 27;
   sizeColuna  = 22;
@@ -120,9 +126,11 @@ void draw() {
       }
       break;
     case 2: //gerar ambiente de rotas
-      /*Pintar guadros ocupados por obstáculos*/
+      int x1_index, y1_index;
+      int x3_index, y3_index;
       int x1,y1,x3,y3;
       int frX1,frY1,frX3,frY3;
+      /*------------Pintar guadros ocupados por obstáculos----------------------*/
       for (int i = obstaculos.size() - 1; i >= 0; i--) {
         Obstaculo part = obstaculos.get(i);
         x1 = part.getX();
@@ -137,8 +145,24 @@ void draw() {
         noStroke();
         desenhaRet(20+(frX1*3),20+(frY1*3),(frX3-frX1)*3,(frY3-frY1)*3, color(0));
         divideScreen();//divide novamente a tela
+        /*-----------------------------------------------------------------------*/  
+        /*-------Set os frames ocupados pela áres dos obstáculos-----------------*/
+        x1_index = searchFrame(x1,1)-1;
+        y1_index = searchFrame(y1,0)-1;
+        x3_index = searchFrame(x3,1)-1;
+        y3_index = searchFrame(y3,0)-1;
+        println(x1_index + " e " + y1_index);
+        println(x3_index + " e " + y3_index);
+        for(int j = y1_index; j <= y3_index; j++){
+            for(int a = x1_index; a<= x3_index; a++){
+               frameScreen[a][j].setWeight(200); //seta os frames dos obstáculos com peso 200
+               fill(255,255,255);
+               textSize(15);
+               text("200", 13 + ( ( frameScreen[a][j].getCenterX()-3)*3), 13 + ( ( frameScreen[a][j].getCenterY()+5) *3) ); //centraliza os valores da área dos obstáculos nos frames
+            }
+        }
+        /*----------------------------------------------------------------------*/
       }
-      /*--------------------------------------*/
       estado = 4;
       break;
       
@@ -200,13 +224,14 @@ void draw() {
           stroke(0);
           desenhaRet(850,120,120,45, color(112,219,147));  //Botão para gerar tragetória
           fill(0);
+          textSize(13);
           text("Gerar tragetória", 858, 140);
           text("e enviar", 880, 157);
           
           if(mouseX >= 850 && mouseX <=970 && mouseY>=120 && mouseY<=165){//mouse no botão Confirmar Ambiente
              cursor(HAND);
              if(mousePressed == true && mouseButton == LEFT){
-                
+                //manhattanMethod();
              }
           }
           
@@ -228,6 +253,54 @@ void draw() {
     text(positionMouseX+":"+positionMouseY+" cm", 875, 674);
   }
 }
+
+
+void manhattanMethod(){ 
+    fill(0);
+    textSize(15);
+    frameScreen[coordXFinal][coordYFinal].setWeight(0); //set o peso do frame de destino em 0.    
+    int currentWeight = 0;
+    int nextX_index = coordXFinal; 
+    int nextY_index = coordYFinal;
+    for(int i = 0; i < 100; i++){//Cada frame precisa ser verificado
+        currentWeight = frameScreen[nextX_index][nextY_index].getWeight();//peso do frame atual
+        /*----teste para verificar se está nos limites dos frames e se o frame desejado já está com algum peso------*/
+        if( (nextX_index-1) >= 0){ 
+            if( frameScreen[nextX_index-1][nextY_index].getWeight() == 300){ //o frame não foi setado,continua com o peso original
+                frameScreen[nextX_index-1][nextY_index].setWeight(currentWeight+1);
+                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index-1][nextY_index].getWeight()-3)*3), 13 + ( ( frameScreen[nextX_index-1][nextY_index].getWeight()+5) *3) ); //imprime na tela o peso do quadro
+            }
+        }
+        
+        if( (nextX_index+1) <= frames){
+            if( frameScreen[nextX_index+1][nextY_index].getWeight() == 300){ //o frame não foi setado,continua com o peso original
+                frameScreen[nextX_index+1][nextY_index].setWeight(currentWeight+1);
+                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index+1][nextY_index].getWeight()-3)*3), 13 + ( ( frameScreen[nextX_index+1][nextY_index].getWeight()+5) *3) ); //imprime na tela o peso do quadro
+            }
+        }
+        
+        if( (nextY_index-1) >= frames){
+            if( frameScreen[nextX_index][nextY_index-1].getWeight() == 300){ //o frame não foi setado,continua com o peso original
+                frameScreen[nextX_index][nextY_index-1].setWeight(currentWeight+1);
+                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index][nextY_index-1].getWeight()-3)*3), 13 + ( ( frameScreen[nextX_index][nextY_index-1].getWeight()+5) *3) ); //imprime na tela o peso do quadro
+            }
+        }
+        
+        
+        if( (nextY_index+1) <= frames){
+            if( frameScreen[nextX_index][nextY_index+1].getWeight() == 300){ //o frame não foi setado,continua com o peso original
+                frameScreen[nextX_index][nextY_index+1].setWeight(currentWeight+1);
+                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index][nextY_index+1].getWeight()-3)*3), 13 + ( ( frameScreen[nextX_index][nextY_index+1].getWeight()+5) *3) ); //imprime na tela o peso do quadro
+            }
+        }
+    }
+    
+    
+
+}
+
+
+
 
 
 void storeFrames(){
