@@ -22,14 +22,15 @@ int coordXFinal;
 int coordYFinal;
 
 /*------Variáveis do método manhattan--------*/
-IntList index;
-
+//IntList index;
+IntList indexProximo;
 
 /*------------------------------------*/
 Frame [][] frameScreen = new Frame[10][10];
 
 void setup() {
-  index = new IntList();
+  //index = new IntList();
+  indexProximo = new IntList();
   pointIF = 0;
   sizeLinha   = 27;
   sizeColuna  = 22;
@@ -220,7 +221,7 @@ void draw() {
     
     case 5:
           /*--------Gerar tragetória----------*/
-          delay(150);
+          delay(100);
           stroke(0);
           desenhaRet(850,120,120,45, color(112,219,147));  //Botão para gerar tragetória
           fill(0);
@@ -228,10 +229,10 @@ void draw() {
           text("Gerar tragetória", 858, 140);
           text("e enviar", 880, 157);
           
-          if(mouseX >= 850 && mouseX <=970 && mouseY>=120 && mouseY<=165){//mouse no botão Confirmar Ambiente
+          if(mouseX >= 850 && mouseX <=970 && mouseY>=120 && mouseY<=165){//mouse no Gerar tragetória
              cursor(HAND);
              if(mousePressed == true && mouseButton == LEFT){
-                //manhattanMethod();
+                manhattanMethod();
              }
           }
           
@@ -259,44 +260,69 @@ void manhattanMethod(){
     fill(0);
     textSize(15);
     frameScreen[coordXFinal][coordYFinal].setWeight(0); //set o peso do frame de destino em 0.    
-    int currentWeight = 0;
-    int nextX_index = coordXFinal; 
-    int nextY_index = coordYFinal;
-    for(int i = 0; i < 100; i++){//Cada frame precisa ser verificado
+    int currentWeight;
+    /*-------Começa a distribuição de pesos pelo ponto de destino---------*/
+    int nextX_index; 
+    int nextY_index;
+    indexProximo.append(coordXFinal);
+    indexProximo.append(coordYFinal);
+    int count = 0;
+    /*--------------------------------------------------------------------*/
+    while( indexProximo.size() != 0 ){//Cada frame precisa ser verificado
+        nextX_index = indexProximo.remove(0);
+        nextY_index = indexProximo.remove(0); 
         currentWeight = frameScreen[nextX_index][nextY_index].getWeight();//peso do frame atual
+        println(currentWeight);
+        println("coordX = " + nextX_index);
+        println("coordY = " + nextY_index);
+        println("///////////////////////");
         /*----teste para verificar se está nos limites dos frames e se o frame desejado já está com algum peso------*/
         if( (nextX_index-1) >= 0){ 
-            if( frameScreen[nextX_index-1][nextY_index].getWeight() == 300){ //o frame não foi setado,continua com o peso original
+            if( (frameScreen[nextX_index-1][nextY_index].getWeight() == 300) ||  ( frameScreen[nextX_index-1][nextY_index].getWeight() != 200) ) { //o frame não foi setado,continua com o peso original ou é um frame de obstáculo
                 frameScreen[nextX_index-1][nextY_index].setWeight(currentWeight+1);
-                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index-1][nextY_index].getWeight()-3)*3), 13 + ( ( frameScreen[nextX_index-1][nextY_index].getWeight()+5) *3) ); //imprime na tela o peso do quadro
+                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index-1][nextY_index].getCenterX()-3)*3), 13 + ( ( frameScreen[nextX_index-1][nextY_index].getCenterY()+5) *3) ); //imprime na tela o peso do quadro
+                /*Armazena os próximos index a serem verificados*/
+                indexProximo.append(nextX_index-1);
+                indexProximo.append(nextY_index);
             }
         }
         
-        if( (nextX_index+1) <= frames){
-            if( frameScreen[nextX_index+1][nextY_index].getWeight() == 300){ //o frame não foi setado,continua com o peso original
+        if( (nextX_index+1) <= 9){
+            if( (frameScreen[nextX_index+1][nextY_index].getWeight() == 300)   || (frameScreen[nextX_index+1][nextY_index].getWeight() != 200)  ){ //o frame não foi setado,continua com o peso original ou é um frame de obstáculo
                 frameScreen[nextX_index+1][nextY_index].setWeight(currentWeight+1);
-                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index+1][nextY_index].getWeight()-3)*3), 13 + ( ( frameScreen[nextX_index+1][nextY_index].getWeight()+5) *3) ); //imprime na tela o peso do quadro
+                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index+1][nextY_index].getCenterX()-3)*3), 13 + ( ( frameScreen[nextX_index+1][nextY_index].getCenterY()+5) *3) ); //imprime na tela o peso do quadro
+                /*Armazena os próximos index a serem verificados*/
+                indexProximo.append(nextX_index+1);
+                indexProximo.append(nextY_index);
             }
         }
         
-        if( (nextY_index-1) >= frames){
-            if( frameScreen[nextX_index][nextY_index-1].getWeight() == 300){ //o frame não foi setado,continua com o peso original
+        if( (nextY_index-1) >= 0){
+            if( ( frameScreen[nextX_index][nextY_index-1].getWeight() == 300 ) || ( frameScreen[nextX_index][nextY_index-1].getWeight() != 200 )){ //o frame não foi setado,continua com o peso original ou é um frame de obstáculo
                 frameScreen[nextX_index][nextY_index-1].setWeight(currentWeight+1);
-                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index][nextY_index-1].getWeight()-3)*3), 13 + ( ( frameScreen[nextX_index][nextY_index-1].getWeight()+5) *3) ); //imprime na tela o peso do quadro
+                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index][nextY_index-1].getCenterX()-3)*3), 13 + ( ( frameScreen[nextX_index][nextY_index-1].getCenterY()+5) *3) ); //imprime na tela o peso do quadro
+                /*Armazena os próximos index a serem verificados*/
+                indexProximo.append(nextX_index);
+                indexProximo.append(nextY_index-1);
             }
         }
         
         
-        if( (nextY_index+1) <= frames){
-            if( frameScreen[nextX_index][nextY_index+1].getWeight() == 300){ //o frame não foi setado,continua com o peso original
+        if( (nextY_index+1) <= 9){
+            if( (frameScreen[nextX_index][nextY_index+1].getWeight() == 300)  || (frameScreen[nextX_index][nextY_index+1].getWeight() != 200) ){ //o frame não foi setado,continua com o peso original ou é um frame de obstáculo
                 frameScreen[nextX_index][nextY_index+1].setWeight(currentWeight+1);
-                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index][nextY_index+1].getWeight()-3)*3), 13 + ( ( frameScreen[nextX_index][nextY_index+1].getWeight()+5) *3) ); //imprime na tela o peso do quadro
+                text(currentWeight+1, 13 + ( ( frameScreen[nextX_index][nextY_index+1].getCenterX()-3)*3), 13 + ( ( frameScreen[nextX_index][nextY_index+1].getCenterY()+5) *3) ); //imprime na tela o peso do quadro
+                /*Armazena os próximos index a serem verificados*/
+                indexProximo.append(nextX_index);
+                indexProximo.append(nextY_index+1);  
             }
         }
+        count++;
+        println( indexProximo );
+        if(count == 30){
+          break;
+        }  
     }
-    
-    
-
 }
 
 
