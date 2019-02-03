@@ -326,15 +326,11 @@ void manhattanMethod(){
     /*-----------------------FIM DA GERAÇÂO DOS PESOS DOS FRAMES DE AREA LIVRE------------------------------------------*/
     
     /*-----------------------INÍCIO DA GERAÇÂO DA ROTA DE QUE SERÁ PERCORRIDA------------------------------------------*/
-     //noStroke();
-     //desenhaRet(20+(frX1*3),20+(frY1*3),(frX3-frX1)*3,(frY3-frY1)*3, color(0));
-     //divideScreen();//divide novamente a tela
-     //while(frameScreen[coordXFinal][coordYFinal]){
-       //frameScreen[coordXFinal][coordYFinal]
      
      
      
-     //}
+     
+    
     
     
      
