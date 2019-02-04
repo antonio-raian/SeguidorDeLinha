@@ -24,12 +24,14 @@ int coordYFinal;
 /*------Variáveis do método manhattan--------*/
 //IntList index;
 IntList indexProximo;
+IntList trajetoria;  //armazena os index da sequência dos frames da trajetória do robô
 
 /*------------------------------------*/
 Frame [][] frameScreen = new Frame[10][10];
 
 void setup() {
   //index = new IntList();
+  trajetoria   = new IntList();
   indexProximo = new IntList();
   pointIF = 0;
   sizeLinha   = 27;
@@ -326,16 +328,83 @@ void manhattanMethod(){
     /*-----------------------FIM DA GERAÇÂO DOS PESOS DOS FRAMES DE AREA LIVRE------------------------------------------*/
     
     /*-----------------------INÍCIO DA GERAÇÂO DA ROTA DE QUE SERÁ PERCORRIDA------------------------------------------*/
-     
-     
-     
-     
+    int pesoAtual = frameScreen[coordXInicial][coordYInicial].getWeight(); //variável pesoAtual consiste em guardar o peso do frame atual que está sendo verificado para a rota
+    //IntList decisoes = new IntList(); //armazena os frames com mais de uma tomada de decisão
+    int   frameX = coordXInicial;
+    int   frameY = coordYInicial;
+    if(coordXFinal > coordXInicial){
+            //começa a verificação de vizinhança por x+1;
+        }else{
+            //começa a verificação de vizinhança por x-1;
+    }
+    //println(pesoAtual);
+    while(pesoAtual != 0){   
+        /* Verifica se tem mais de uma tomada de decisão. Caso sim, armazena o local e as posições não escolhidas */
+        //x+1
+        if( (frameX+1) <= 9 ) {
+          if(frameScreen[frameX+1][frameY].getWeight() < frameScreen[frameX][frameY].getWeight()  ){
+               trajetoria.append(frameX+1);
+               trajetoria.append(frameY);
+               frameX = frameX+1; //atualizo para o próximo frame
+               pesoAtual = frameScreen[frameX][frameY].getWeight(); //atualizo para o peso do próximo frame onde será verificado as vizinhanças.
+               continue;
+          }
+        }
+      
+        //x-1
+        if( (frameX-1) >= 0 ) {
+          if(frameScreen[frameX-1][frameY].getWeight() < frameScreen[frameX][frameY].getWeight()  ){
+               trajetoria.append(frameX-1);
+               trajetoria.append(frameY);
+               frameX = frameX-1; //atualizo para o próximo frame
+               pesoAtual = frameScreen[frameX][frameY].getWeight(); //atualizo para o peso do próximo frame onde será verificado as vizinhanças.
+               continue;
+          }
+        }
+        
+        //y-1
+        if( (frameY-1) >= 0 ){
+          if(frameScreen[frameX][frameY-1].getWeight() < frameScreen[frameX][frameY].getWeight()  ){
+               trajetoria.append(frameX);
+               trajetoria.append(frameY-1);
+               frameY = frameY-1; //atualizo para o próximo frame
+               pesoAtual = frameScreen[frameX][frameY].getWeight(); //atualizo para o peso do próximo frame onde será verificado as vizinhanças.
+               continue;
+          }
+        }
+        
+        //y+1
+        if((frameY+1) <= 9){
+          if(frameScreen[frameX][frameY+1].getWeight() < frameScreen[frameX][frameY].getWeight()  ){
+              trajetoria.append(frameX);
+              trajetoria.append(frameY+1);
+              frameY = frameY+1; //atualizo para o próximo frame
+              pesoAtual = frameScreen[frameX][frameY].getWeight(); //atualizo para o peso do próximo frame onde será verificado as vizinhanças.
+              continue;
+          }
+        }
+    } 
     
-    
-    
-     
-     
-    /*-----------------------FIM DA GERAÇÂO DA ROTA DE QUE SERÁ PERCORRIDA------------------------------------------*/
+    println(trajetoria);
+    /*-----------Quando pesoAtual for igual a 0, é necessário mostrar a trajetória escolhida--------------*/
+    int aux_x1,aux_y1;
+    int auxX, auxY;
+    while(trajetoria.size() != 0) {
+        auxX = trajetoria.remove(0);
+        auxY = trajetoria.remove(0);
+       /*Agora pinta os frames específcos da trajetória*/
+        aux_x1 = (27*auxX);
+        aux_y1 = (22*auxY);
+        noStroke();
+        desenhaRet(20+(aux_x1*3),20+(aux_y1*3),27*3,22*3, color(255,343,100));
+        /*--------------------------------------------------------------------*/
+        /*--------------Agora mostra novamente os pesos dos blocos escolhidos para trajetória----------------------*/
+        textSize(15);
+        text(frameScreen[auxX][auxY].getWeight(), 13 + ( ( frameScreen[auxX][auxY].getCenterX()-3)*3), 13 + ( ( frameScreen[auxX][auxY].getCenterY()+5) *3) ); 
+        /*--------------------------------------------------------------------------------------------------------*/
+    }
+    divideScreen();//divide novamente a tela
+    /*-----------------------FIM DA GERAÇÂO DA ROTA QUE SERÁ PERCORRIDA------------------------------------------*/
 }
 
 
