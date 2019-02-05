@@ -5,7 +5,7 @@ import processing.serial.*;
 
 color cor;
 ArrayList <Obstaculo> obstaculos;
-int estado; //0 = inicial, 1 = setando obstáculos, 2 = pronto pra gerar ambiente, 3 = apagar último obstáculo, 4 = definir ponto final e inicial e gerar tragetória, 5 = gerar tragetória 
+int estado; //0 = inicial, 1 = setando obstáculos, 2 = pronto pra gerar ambiente, 3 = apagar último obstáculo, 4 = definir ponto final e inicial e gerar tragetória, 5 = gerar tragetória, 6 = apagar tudo e gerar nova rota
 String obx, oby, obLar, obAlt;
 int escrever; //0 = faz nada 1 = seta x, 2 = seta y, 3 = seta Largura, 4 = seta Altura
 int frames;
@@ -86,7 +86,7 @@ void draw() {
             estado=3;
           }
         }else {
-        cursor(ARROW);
+          cursor(ARROW);
         }
         break;
     case 1:
@@ -236,14 +236,40 @@ void draw() {
              cursor(HAND);
              if(mousePressed == true && mouseButton == LEFT){
                 manhattanMethod();
+                estado = 6;
              }
           }
-          
-          
-          
-          
-          
-      break;
+         break;
+     
+    case 6: 
+         /*Estado que limpa o ambiente para geração de uma nova rota*/
+         stroke(0);
+         desenhaRet(850,120,120,45, color(112,219,147));  //Botão para limpar ambiente
+         fill(0);
+         textSize(13);
+         text("Limpar ambiente", 858, 145);
+         
+         if(mouseX >= 850 && mouseX <=970 && mouseY>=120 && mouseY<=165){//mouse no Gerar tragetória
+             cursor(HAND);
+             if(mousePressed == true && mouseButton == LEFT){
+               noStroke();
+               desenhaRet(850,120,123,47, color(168,168,168));  //apaga o botão de limpar ambiente
+               desenhaRet(20,20,810,660, color(255));           //pinta novamente a área de trabalho
+               divideScreen();                                  //divide a tela novamente
+               trajetoria = new IntList();                      //limpa o vetor de index dos frames da trajetória
+               obstaculos = new ArrayList();                    //limpa o vetor de obstáculos      
+               /*-----------reinicia os frames da tela----------------------*/
+               for(int x = 0; x < 10; x++){
+                 for(int y = 0; y < 10; y++){
+                    frameScreen[x][y].setObstaculo(0);
+                    frameScreen[x][y].setWeight(0);
+                 }
+               }                
+               /*-----------------------------------------------------------*/
+               estado = 0;
+             }
+          }
+         break;
   }
   
   if (mouseX >= 20 && mouseX <=830 && mouseY>=20 && mouseY<=680 ) {
