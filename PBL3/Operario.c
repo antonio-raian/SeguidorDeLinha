@@ -29,7 +29,8 @@ void readBTMsg() {
   ubyte bufferEntrada[1];                                       // create a ubyte array, 'BytesRead' of size 'bufferSize'.
   int nNumbBytesRead;
   nNumbBytesRead = nxtReadRawBluetooth(&bufferEntrada[0], 1);   // store 'bufferSize' amount of bytes into 'BytesRead[0]'.
-  nxtDisplayCenteredTextLine(5, "MSG %c", bufferEntrada[0]);
+  nxtDisplayCenteredTextLine(3, "%d", estado);
+  nxtDisplayCenteredTextLine(5, "MSG %s", bufferEntrada[0]);
 
   switch (bufferEntrada[0]){
     case FRENTE_22:
