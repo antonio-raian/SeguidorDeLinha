@@ -399,6 +399,7 @@ void manhattanMethod(){
         desenhaRet(20+(aux_x1*3),20+(aux_y1*3),27*3,22*3, color(255,343,100));
         /*--------------------------------------------------------------------*/
         /*--------------Agora mostra novamente os pesos dos blocos escolhidos para trajetória----------------------*/
+        fill(0);
         textSize(15);
         text(frameScreen[auxX][auxY].getWeight(), 13 + ( ( frameScreen[auxX][auxY].getCenterX()-3)*3), 13 + ( ( frameScreen[auxX][auxY].getCenterY()+5) *3) ); 
         /*--------------------------------------------------------------------------------------------------------*/
