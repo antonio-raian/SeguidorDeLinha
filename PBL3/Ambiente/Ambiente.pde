@@ -26,13 +26,22 @@ int coordYFinal;
 IntList indexProximo;
 IntList trajetoria;  //armazena os index da sequência dos frames da trajetória do robô
 
+/*------Variáveis pra trajetória--------*/
+Serial portaBT;  // Porta BT
+StringList pilhaOrientacao; //Armazena a direção do robô; D - moviemnto para direita, E - movimento para esquerda;
+IntList comandos; //Armazena os comandos para enviar pro robô;
+
 /*------------------------------------*/
 Frame [][] frameScreen = new Frame[10][10];
 
 void setup() {
+  //Setando conexão com o BlueTooth
+  portaBT = new Serial(this, Serial.list()[1], 9600);
+  
   //index = new IntList();
   trajetoria   = new IntList();
   indexProximo = new IntList();
+  pilhaOrientacao = new StringList();
   pointIF = 0;
   sizeLinha   = 27;
   sizeColuna  = 22;
@@ -240,8 +249,23 @@ void draw() {
              }
           }
          break;
-     
-    case 6: 
+    case 6:
+      comandos = generateComando();
+      println(comandos);
+      int cmd, resp=0;
+      while(comandos.size()!=0){
+        cmd = comandos.remove(0);
+        portaBT.write(cmd);
+        while(resp!=5){
+          resp = portaBT.read();
+          println("Resposta: "+ resp);
+        }
+        resp=0;
+      }
+      estado = 7;
+        
+    break;
+    case 7: 
          /*Estado que limpa o ambiente para geração de uma nova rota*/
          stroke(0);
          desenhaRet(850,120,120,45, color(112,219,147));  //Botão para limpar ambiente
@@ -413,11 +437,11 @@ void manhattanMethod(){
     
     println(trajetoria);
     /*-----------Quando pesoAtual for igual a 0, é necessário mostrar a trajetória escolhida--------------*/
-    int aux_x1,aux_y1;
+    int aux_x1,aux_y1, i=0;
     int auxX, auxY;
-    while(trajetoria.size() != 0) {
-        auxX = trajetoria.remove(0);
-        auxY = trajetoria.remove(0);
+    while(i<trajetoria.size()) {
+        auxX = trajetoria.get(i);
+        auxY = trajetoria.get(i+1);
        /*Agora pinta os frames específcos da trajetória*/
         aux_x1 = (27*auxX);
         aux_y1 = (22*auxY);
@@ -429,6 +453,7 @@ void manhattanMethod(){
         textSize(15);
         text(frameScreen[auxX][auxY].getWeight(), 13 + ( ( frameScreen[auxX][auxY].getCenterX()-3)*3), 13 + ( ( frameScreen[auxX][auxY].getCenterY()+5) *3) ); 
         /*--------------------------------------------------------------------------------------------------------*/
+        i+=2;  
     }
     divideScreen();//divide novamente a tela
     /*-----------------------FIM DA GERAÇÂO DA ROTA QUE SERÁ PERCORRIDA------------------------------------------*/
@@ -580,4 +605,82 @@ int checkValueCoordenate(){
     }
   }  
   return 0;
+}
+
+IntList generateComando(){
+  IntList command = new IntList();
+  int xatual=coordXInicial, yatual=coordYInicial, xprox, yprox;
+  
+  for(int i=0; i<trajetoria.size(); i+=2){
+    int control = pilhaOrientacao.size();
+    xprox = trajetoria.get(i);
+    yprox = trajetoria.get(i+1);
+    if(xprox>xatual){//anda pra direita
+      for(int j=0; j<control; j++){
+        if(pilhaOrientacao.get(0) == "D"){
+          command.append(4);
+        }else{
+          command.append(3);
+        }
+        pilhaOrientacao.remove(0);
+      }
+      command.append(2);
+    }else if(xprox<xatual){//anda pra esquerda
+      if(pilhaOrientacao.size() == 0){
+        command.append(3);
+        command.append(3);
+        pilhaOrientacao.append("D");
+        pilhaOrientacao.append("D");
+      }else if (pilhaOrientacao.size() == 1){
+        if(pilhaOrientacao.get(0) == "D"){
+          command.append(3);
+          pilhaOrientacao.append("D");
+        }else{
+          command.append(4);
+          pilhaOrientacao.append("E");
+        }
+      }      
+      command.append(2);
+    }else if(yprox>yatual){//anda pra baixo
+      if(pilhaOrientacao.size() == 0){
+        command.append(3);
+        pilhaOrientacao.append("D");
+      }else if(pilhaOrientacao.size() == 1 && pilhaOrientacao.get(0) == "E"){
+        command.append(3);
+        command.append(3);
+        pilhaOrientacao.remove(0);
+        pilhaOrientacao.append("D");
+      }else if(pilhaOrientacao.size() == 2){
+        command.append(4);
+        if(pilhaOrientacao.get(0) == "E"){
+          pilhaOrientacao.append("E");
+        }else{
+          pilhaOrientacao.remove(0);
+        }
+      }
+      command.append(1);
+    }else if(yprox<yatual){//anda pra cima
+      if(pilhaOrientacao.size() == 0){
+        command.append(4);
+        pilhaOrientacao.append("E");
+      }else if(pilhaOrientacao.size() == 1 && pilhaOrientacao.get(0) == "D"){
+        command.append(3);
+        command.append(3);
+        pilhaOrientacao.remove(0);
+        pilhaOrientacao.append("E");
+      }else if(pilhaOrientacao.size() == 2){
+        command.append(3);
+        if(pilhaOrientacao.get(0) == "E"){
+          pilhaOrientacao.remove(0);
+        }else{
+          pilhaOrientacao.append("D");
+        }        
+      }
+      command.append(1);
+    }
+    xatual = xprox;
+    yatual = yprox;
+  }
+  
+  return command;
 }

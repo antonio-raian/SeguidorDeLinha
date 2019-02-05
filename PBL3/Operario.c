@@ -69,7 +69,7 @@ task configBT(){
 void sendBTMessage(){
   setBluetoothRawDataMode();
   ubyte myMsg[1];
-	myMsg[0] = 0;
+	myMsg[0] = 5;
 	nxtWriteRawBluetooth(nBTCurrentStreamIndex , myMsg, 1);
 }
 //////////////////////////////////////////////////////////////////////////
@@ -124,18 +124,22 @@ task main{
         break;
       case EM_FRENTE_22:
         walk(220, 50);
+	      sendBTMessage();
         estado = PARADO;
         break;
       case EM_FRENTE_27:
         walk(270, 50);
+	      sendBTMessage();
         estado = PARADO;
         break;
       case VIRA_DIREITA:
         viraGraus(90, 0, 50);
+	      sendBTMessage();
         estado = PARADO;
         break;
       case VIRA_ESQUERDA:
         viraGraus(90, 1, 50);
+	      sendBTMessage();
         estado = PARADO;
         break;
       //default:
