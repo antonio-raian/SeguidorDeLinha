@@ -14,10 +14,10 @@ const int VIRA_DIREITA = 3;
 const int VIRA_ESQUERDA = 4;
 
 //PROTOCOLO
-const int FRENTE_22 = 10;
-const int FRENTE_27 = 11;
-const int ESQUERDA = 2;
+const int FRENTE_22 = 1;
+const int FRENTE_27 = 2;
 const int DIREITA = 3;
+const int ESQUERDA = 4;
 
 //Variaveis
 int estado = PARADO;
@@ -30,7 +30,7 @@ void readBTMsg() {
   int nNumbBytesRead;
   nNumbBytesRead = nxtReadRawBluetooth(&bufferEntrada[0], 1);   // store 'bufferSize' amount of bytes into 'BytesRead[0]'.
   nxtDisplayCenteredTextLine(3, "%d", estado);
-  nxtDisplayCenteredTextLine(5, "MSG %s", bufferEntrada[0]);
+  nxtDisplayCenteredTextLine(5, "MSG %d", bufferEntrada[0]);
 
   switch (bufferEntrada[0]){
     case FRENTE_22:
@@ -46,9 +46,11 @@ void readBTMsg() {
         estado = VIRA_DIREITA;
         break;
     default:
-        //estado = PARADO;
+        estado = PARADO;
         break;
   }
+  bufferEntrada[0]=0;
+  wait1Msec(500);
 }
 
 task configBT(){
@@ -118,15 +120,14 @@ task main{
   while(true){
 	  switch(estado){
 	    case PARADO:
-	      sendBTMessage();
 	      parar();
         break;
       case EM_FRENTE_22:
-        walk(22, 50);
+        walk(220, 50);
         estado = PARADO;
         break;
       case EM_FRENTE_27:
-        walk(27, 50);
+        walk(270, 50);
         estado = PARADO;
         break;
       case VIRA_DIREITA:
@@ -137,6 +138,7 @@ task main{
         viraGraus(90, 1, 50);
         estado = PARADO;
         break;
+      //default:
 	  }
 	}
 }
