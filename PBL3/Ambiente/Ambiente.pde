@@ -37,6 +37,7 @@ Frame [][] frameScreen = new Frame[10][10];
 void setup() {
   //Setando conexão com o BlueTooth
   portaBT = new Serial(this, Serial.list()[1], 9600);
+  println("Conectado");
   
   //index = new IntList();
   trajetoria   = new IntList();
@@ -252,15 +253,16 @@ void draw() {
     case 6:
       comandos = generateComando();
       println(comandos);
+      
       int cmd, resp=0;
       while(comandos.size()!=0){
         cmd = comandos.remove(0);
         portaBT.write(cmd);
         while(resp!=5){
           resp = portaBT.read();
-          println("Resposta: "+ resp);
+          delay(100);
         }
-        resp=0;
+        resp=0;    
       }
       estado = 7;
         
@@ -307,7 +309,6 @@ void draw() {
     text(positionMouseX+":"+positionMouseY+" cm", 875, 674);
   }
 }
-
 
 void manhattanMethod(){ 
     fill(0);
@@ -382,12 +383,6 @@ void manhattanMethod(){
     //IntList decisoes = new IntList(); //armazena os frames com mais de uma tomada de decisão
     int   frameX = coordXInicial;
     int   frameY = coordYInicial;
-    if(coordXFinal > coordXInicial){
-            //começa a verificação de vizinhança por x+1;
-        }else{
-            //começa a verificação de vizinhança por x-1;
-    }
-    //println(pesoAtual);
     while(pesoAtual != 0){   
         /* Verifica se tem mais de uma tomada de decisão. Caso sim, armazena o local e as posições não escolhidas */
         //x+1
@@ -435,7 +430,7 @@ void manhattanMethod(){
         }
     } 
     
-    println(trajetoria);
+    //println(trajetoria);
     /*-----------Quando pesoAtual for igual a 0, é necessário mostrar a trajetória escolhida--------------*/
     int aux_x1,aux_y1, i=0;
     int auxX, auxY;
@@ -473,11 +468,6 @@ void storeFrames(){
    for(x = 0; x < frames; x++){
      for(y = 0; y < frames; y++ ){
        frameScreen[x][y] = new Frame(coordenateX,coordenateY,largura,altura);
-        /*print(coordenateX + " ");
-        println(coordenateY);
-        println(largura);
-        println(altura);
-        println("------------------------");*/
         coordenateY+=sizeColuna;
         altura += sizeColuna;
      }
@@ -610,9 +600,9 @@ int checkValueCoordenate(){
 IntList generateComando(){
   IntList command = new IntList();
   int xatual=coordXInicial, yatual=coordYInicial, xprox, yprox;
-  
+  int control;
   for(int i=0; i<trajetoria.size(); i+=2){
-    int control = pilhaOrientacao.size();
+    control = pilhaOrientacao.size();
     xprox = trajetoria.get(i);
     yprox = trajetoria.get(i+1);
     if(xprox>xatual){//anda pra direita
@@ -681,6 +671,14 @@ IntList generateComando(){
     xatual = xprox;
     yatual = yprox;
   }
-  
+  control = pilhaOrientacao.size();
+  for(int j=0; j<control; j++){
+    if(pilhaOrientacao.get(0) == "D"){
+        command.append(4);
+      }else{
+        command.append(3);
+      }
+      pilhaOrientacao.remove(0);
+    }
   return command;
 }
