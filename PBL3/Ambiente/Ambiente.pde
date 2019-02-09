@@ -15,16 +15,15 @@ int positionMouseX;
 int positionMouseY;
 int pointIF; //Ponto inicial = 0, ponto final = 1;
 
-/*----Coordenadas(index) dos frames de partida e destino da tragetória*/
+/*----Coordenadas(index) dos frames de partida e destino*/
 int coordXInicial;
 int coordYInicial;
 int coordXFinal;
 int coordYFinal;
 
 /*------Variáveis do método manhattan--------*/
-//IntList index;
 IntList indexProximo;
-IntList trajetoria;  //armazena os index da sequência dos frames da trajetória do robô
+IntList trajetoria;  //armazena os index da sequência dos frames do caminho do robô
 
 /*------Variáveis pra trajetória--------*/
 Serial portaBT;  // Porta BT
@@ -32,14 +31,13 @@ StringList pilhaOrientacao; //Armazena a direção do robô; D - moviemnto para 
 IntList comandos; //Armazena os comandos para enviar pro robô;
 
 /*------------------------------------*/
-Frame [][] frameScreen = new Frame[10][10];
+Frame [][] frameScreen = new Frame[10][10]; //matriz de frames do ambiente
 
 void setup() {
   //Setando conexão com o BlueTooth
   portaBT = new Serial(this, Serial.list()[1], 9600);
   println("Conectado");
   
-  //index = new IntList();
   trajetoria   = new IntList();
   indexProximo = new IntList();
   pilhaOrientacao = new StringList();
@@ -51,9 +49,9 @@ void setup() {
   estado = 0; //Estado inicial
   escrever = 0;
   frames = 10;
+  /*-----------------------Cria o ambiente inicial do supervisor-----------------------*/
   background(168,168,168);//fundo Cinza Brilhante
   size(1000, 700);
-  
   desenhaRet(20,20,810,660, color(255));          //Área de trabalho, cada cm são 3 pixeis
   desenhaRet(850, 20,120, 40, color(112,219,219));//Botão adicionar obstáculo
   desenhaRet(850,70,120,40, color(112,219,147));  //Botão Confirma
@@ -100,11 +98,11 @@ void draw() {
         }
         break;
     case 1:
-        desenhaRet(850, 130, 50, 30, 255);//X
-        desenhaRet(920, 130, 50, 30, 255);//Y
-        desenhaRet(850, 180, 50, 30, 255);//largura
-        desenhaRet(920, 180, 50, 30, 255);//altura
-        desenhaRet(900, 230, 70, 30, 0);
+      desenhaRet(850, 130, 50, 30, 255);//X
+      desenhaRet(920, 130, 50, 30, 255);//Y
+      desenhaRet(850, 180, 50, 30, 255);//largura
+      desenhaRet(920, 180, 50, 30, 255);//altura
+      desenhaRet(900, 230, 70, 30, 0);
       
       textSize(13);
       fill(0);
@@ -159,7 +157,7 @@ void draw() {
         desenhaRet(20+(frX1*3),20+(frY1*3),(frX3-frX1)*3,(frY3-frY1)*3, color(0));
         divideScreen();//divide novamente a tela
         /*-----------------------------------------------------------------------*/  
-        /*-------Set os frames ocupados pela áres dos obstáculos-----------------*/
+        /*-------Set os frames ocupados pela área dos obstáculos-----------------*/
         x1_index = searchFrame(x1,1)-1;
         y1_index = searchFrame(y1,0)-1;
         x3_index = searchFrame(x3,1)-1;
@@ -200,7 +198,7 @@ void draw() {
       break;
       
     case 4:
-      /*--------------Definir ponto inicial e final da tragetória-------------------*/
+      /*--------------Definir ponto inicial e final----------------------------*/
       delay(200);
       if(pointIF == 2){
         estado = 5;
@@ -233,16 +231,16 @@ void draw() {
       break;
     
     case 5:
-          /*--------Gerar tragetória----------*/
+          /*--------Geração do caminho----------*/
           delay(100);
           stroke(0);
-          desenhaRet(850,120,120,45, color(112,219,147));  //Botão para gerar tragetória
+          desenhaRet(850,120,120,45, color(112,219,147));  //Botão para geração do caminho
           fill(0);
           textSize(13);
           text("Gerar tragetória", 858, 140);
           text("e enviar", 880, 157);
           
-          if(mouseX >= 850 && mouseX <=970 && mouseY>=120 && mouseY<=165){//mouse no Gerar tragetória
+          if(mouseX >= 850 && mouseX <=970 && mouseY>=120 && mouseY<=165){//mouse botão "Gerar trajetória"
              cursor(HAND);
              if(mousePressed == true && mouseButton == LEFT){
                 manhattanMethod();
@@ -251,16 +249,14 @@ void draw() {
           }
          break;
     case 6:
-      comandos = generateComando();
-      println(comandos);
-      
+      comandos = generateComando(); //função de geração da cadeia de comandos a serem enviados para o robô   
       int cmd, resp=0;
       while(comandos.size()!=0){
         cmd = comandos.remove(0);
         portaBT.write(cmd);
         while(resp!=5){
           resp = portaBT.read();
-          delay(100);
+          delay(10);
         }
         resp=0;    
       }
@@ -275,7 +271,7 @@ void draw() {
          textSize(13);
          text("Limpar ambiente", 858, 145);
          
-         if(mouseX >= 850 && mouseX <=970 && mouseY>=120 && mouseY<=165){//mouse no Gerar tragetória
+         if(mouseX >= 850 && mouseX <=970 && mouseY>=120 && mouseY<=165){//mouse no "Limpar ambiente"
              cursor(HAND);
              if(mousePressed == true && mouseButton == LEFT){
                noStroke();
@@ -310,6 +306,9 @@ void draw() {
   }
 }
 
+/*
+  Função que gera toda a distribuíção de potenciais nos frames do ambiente, com base nisso, realiza a geração de todo o caminho entre o ponto inicial e final.
+*/
 void manhattanMethod(){ 
     fill(0);
     textSize(15);
@@ -326,10 +325,6 @@ void manhattanMethod(){
         nextX_index = indexProximo.remove(0);
         nextY_index = indexProximo.remove(0); 
         currentWeight = frameScreen[nextX_index][nextY_index].getWeight();//peso do frame atual
-        println(currentWeight);
-        println("coordX = " + nextX_index);
-        println("coordY = " + nextY_index);
-        println("///////////////////////");
         /*----teste para verificar se está nos limites dos frames e se o frame desejado já está com algum peso------*/
         if( (nextX_index-1) >= 0){ 
             if( (frameScreen[nextX_index-1][nextY_index].getWeight() != 200) &&  ( frameScreen[nextX_index-1][nextY_index].getSetObstaculo() != 1) ) { //o frame não foi setado,continua com o peso original ou é um frame de obstáculo
@@ -380,11 +375,10 @@ void manhattanMethod(){
     
     /*-----------------------INÍCIO DA GERAÇÂO DA ROTA DE QUE SERÁ PERCORRIDA------------------------------------------*/
     int pesoAtual = frameScreen[coordXInicial][coordYInicial].getWeight(); //variável pesoAtual consiste em guardar o peso do frame atual que está sendo verificado para a rota
-    //IntList decisoes = new IntList(); //armazena os frames com mais de uma tomada de decisão
     int   frameX = coordXInicial;
     int   frameY = coordYInicial;
     while(pesoAtual != 0){   
-        /* Verifica se tem mais de uma tomada de decisão. Caso sim, armazena o local e as posições não escolhidas */
+        /* Checa as vizinhanças possíveis de cada frame, atualizando o potencial daqueles ainda não verificados */
         //x+1
         if( (frameX+1) <= 9 ) {
           if(frameScreen[frameX+1][frameY].getWeight() < frameScreen[frameX][frameY].getWeight()  ){
@@ -430,20 +424,19 @@ void manhattanMethod(){
         }
     } 
     
-    //println(trajetoria);
-    /*-----------Quando pesoAtual for igual a 0, é necessário mostrar a trajetória escolhida--------------*/
+    /*-----------Quando pesoAtual for igual a 0, é necessário mostrar o caminho escolhidos--------------*/
     int aux_x1,aux_y1, i=0;
     int auxX, auxY;
     while(i<trajetoria.size()) {
         auxX = trajetoria.get(i);
         auxY = trajetoria.get(i+1);
-       /*Agora pinta os frames específcos da trajetória*/
+       /*Agora pinta os frames específcos do caminho*/
         aux_x1 = (27*auxX);
         aux_y1 = (22*auxY);
         noStroke();
         desenhaRet(20+(aux_x1*3),20+(aux_y1*3),27*3,22*3, color(255,343,100));
         /*--------------------------------------------------------------------*/
-        /*--------------Agora mostra novamente os pesos dos blocos escolhidos para trajetória----------------------*/
+        /*--------------Mostra novamente os pesos dos blocos escolhidos---------------------------*/
         fill(0);
         textSize(15);
         text(frameScreen[auxX][auxY].getWeight(), 13 + ( ( frameScreen[auxX][auxY].getCenterX()-3)*3), 13 + ( ( frameScreen[auxX][auxY].getCenterY()+5) *3) ); 
@@ -457,7 +450,9 @@ void manhattanMethod(){
 
 
 
-
+/*
+Função que armazena os frames do ambiente para os cálculos posteriores
+*/
 void storeFrames(){
   int x;
   int y;
@@ -478,6 +473,10 @@ void storeFrames(){
    }
 }
 
+
+/*
+Função que realiza a divisão visual dos frames no ambiente
+*/
 void divideScreen(){
   int x1,x2,y1,y2;
   /*----------Divisão vertical------------*/
@@ -504,6 +503,9 @@ void divideScreen(){
   }
 }
 
+/*
+  Função que retorna o index da matriz de frames ao qual determinada coordenada está posicionada.
+*/
 int searchFrame( int value, int coordenate ){
   int point1 = 0;
   int point2;
@@ -532,7 +534,9 @@ int searchFrame( int value, int coordenate ){
 }
 
 
-
+/*
+  Transforma as coordenadas do mouse de pixel para CM em relação ao ambiente.
+*/
 int posicaoCM(int x){
   if(x!=0){
     return((x-20)/3);
@@ -541,11 +545,18 @@ int posicaoCM(int x){
   }
 }
 
+/*
+  Função que desenha os retângulos ou guadrados no ambiente
+*/
 void desenhaRet(int x, int y, int largura, int altura, color c){
   fill(c);
   rect(x, y, largura, altura);
 }
 
+/*
+  Funções que são sempre verificas pelo processing sem necessidade da realização de alguma chamada
+*/
+/*-------------------------------------------------------------------------------------------------*/
 void keyTyped() {
   //println("typed " + int(key) + " " + keyCode);
   if(int(key)>=48 && int(key)<=57){
@@ -580,7 +591,11 @@ void keyPressed(){
     if(escrever==4) obAlt="";
   }
 }
+/*--------------------------------------------------------------------------------------------*/
 
+/*
+  Limpa as variáveis de coordenada e tamanho para novos obstáculos serem colocados. 
+*/
 void clean(){  
   obx = "X";
   oby = "Y";
@@ -597,6 +612,11 @@ int checkValueCoordenate(){
   return 0;
 }
 
+/*
+  Função que gera a cadeia de comandos a serem enviados para o robô e também manipula a pilha de orientação do mesmo,
+  fazendo com que a sua orientação padrão seja preservada ao final de cada percurso e também a cada movimento seja possível
+  saber para qual direção virar de acordo aos últimos movimentos realizados.
+*/
 IntList generateComando(){
   IntList command = new IntList();
   int xatual=coordXInicial, yatual=coordYInicial, xprox, yprox;
